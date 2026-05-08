@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+{% block title %}{{ titulo }}{% endblock %}
+{% block content %}
+<h2 class="mb-4">{{ titulo }}</h2>
+<div class="card p-4" style="max-width:600px">
+  <form id="form-cliente">
+    {% csrf_token %}
+    <div class="mb-3"><label class="form-label">Nome</label><input type="text" name="nome" id="nome" class="form-control" required></div>
+    <div class="mb-3"><label class="form-label">CPF</label><input type="text" name="cpf" id="cpf" class="form-control" required maxlength="11"></div>
+    <div class="mb-3"><label class="form-label">Email</label><input type="email" name="email" id="email" class="form-control" required></div>
+    <div class="mb-3"><label class="form-label">Telefone</label><input type="text" name="telefone" id="telefone" class="form-control"></div>
+    <div class="mb-3"><label class="form-label">Endereço</label><textarea name="endereco" id="endereco" class="form-control"></textarea></div>
+    <div id="erro" class="alert alert-danger d-none"></div>
+    <button type="submit" class="btn btn-primary">Salvar</button>
+    <a href="/clientes/" class="btn btn-secondary ms-2">Cancelar</a>
+  </form>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+const clienteId = "{{ cliente_id }}";
+
+if (clienteId) {
+  fetch('/api/clientes/' + clienteId + '/', { credentials: 'same-origin' })
+    .then(r => r.json()).then(c => {
+      document.getElementById('nome').value = c.nome;
+      document.getElementById('cpf').value = c.cpf;
+      document.getElementById('email').value = c.email;
+      document.getElementById('telefone').value = c.telefone || '';
+      document.getElementById('endereco').value = c.endereco || '';
+    });
+}
+
+document.getElementById('form-cliente').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const data = {
+    nome: document.getElementById('nome').value,
+    cpf: document.getElementById('cpf').value,
+    email: document.getElementById('email').value,
+    telefone: document.getElementById('telefone').value,
+    endereco: document.getElementById('endereco').value,
+  };
+  const url = clienteId ? '/api/clientes/' + clienteId + '/' : '/api/clientes/';
+  const method = clienteId ? 'PUT' : 'POST';
+  const res = await fetch(url, {
+    method,
+    credentials: 'same-origin',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': document.cookie.match(/csrftoken=([^;]+)/)[1]
+    },
+    body: JSON.stringify(data)
+  });
+  if (res.ok) { window.location.href = '/clientes/'; }
+  else {
+    const err = await res.json();
+    const erroEl = document.getElementById('erro');
+    erroEl.textContent = err.mensagem || JSON.stringify(err);
+    erroEl.classList.remove('d-none');
+  }
+});
+</script>
+{% endblock %}

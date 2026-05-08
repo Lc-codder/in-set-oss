@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% block title %}Produtos{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h2>Produtos</h2>
+  <a href="/produtos/novo/" class="btn btn-primary"><i class="bi bi-plus"></i> Novo Produto</a>
+</div>
+<div class="card">
+  <div class="card-body p-0">
+    <table class="table table-hover mb-0">
+      <thead><tr><th>Nome</th><th>Preço</th><th>Estoque</th><th>Est. Mínimo</th><th></th></tr></thead>
+      <tbody id="tabela-produtos"></tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+fetch('/api/produtos/', { credentials: 'same-origin' })
+  .then(r => r.json()).then(produtos => {
+    const tbody = document.getElementById('tabela-produtos');
+    produtos.forEach(p => {
+      const alerta = p.quantidade_estoque <= p.estoque_minimo ? '⚠️' : '';
+      tbody.innerHTML += `<tr>
+        <td>${p.nome}</td>
+        <td>R$ ${parseFloat(p.preco).toFixed(2)}</td>
+        <td>${alerta} ${p.quantidade_estoque}</td>
+        <td>${p.estoque_minimo}</td>
+        <td>
+          <a href="/produtos/${p.id}/editar/" class="btn btn-sm btn-outline-primary">Editar</a>
+        </td>
+      </tr>`;
+    });
+  });
+</script>
+{% endblock %}

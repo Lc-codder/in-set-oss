@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+{% block title %}Nova Venda{% endblock %}
+{% block content %}
+<h2 class="mb-4">Nova Venda</h2>
+<div class="card p-4" style="max-width:700px">
+  <div class="mb-3">
+    <label class="form-label">Cliente</label>
+    <select id="cliente" class="form-select"></select>
+  </div>
+  <h5 class="mt-3">Itens</h5>
+  <div id="itens"></div>
+  <button onclick="adicionarItem()" class="btn btn-outline-primary btn-sm mt-2"><i class="bi bi-plus"></i> Adicionar Item</button>
+  <div id="erro" class="alert alert-danger d-none mt-3"></div>
+  <div class="mt-4">
+    <button onclick="finalizarVenda()" class="btn btn-primary">Finalizar Venda</button>
+    <a href="/vendas/" class="btn btn-secondary ms-2">Cancelar</a>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+let produtos = [];
+
+fetch('/api/clientes/', { credentials: 'same-origin' }).then(r => r.json()).then(clientes => {
+  const sel = document.getElementById('cliente');
+  clientes.forEach(c => sel.innerHTML += `<option value="${c.id}">${c.nome}</option>`);
+});
+
+fetch('/api/produtos/', { credentials: 'same-origin' }).then(r => r.json()).then(p => { produtos = p; });
+
+function adicionarItem() {
+  const div = document.createElement('div');
+  div.className = 'row g-2 mb-2 item-linha';
+  div.innerHTML = `
+    <div class="col-7">
+      <select class="form-select produto-sel">
+        ${produtos.map(p => `<option value="${p.id}">${p.nome} — R$ ${parseFloat(p.preco).toFixed(2)} (estoque: ${p.quantidade_estoque})</option>`).join('')}
+      </select>
+    </div>
+    <div class="col-3"><input type="number" class="form-control qtd-input" min="1" value="1" placeholder="Qtd"></div>
+    <div class="col-2"><button onclick="this.parentElement.remove()" class="btn btn-outline-danger w-100">✕</button></div>
+  `;
+  document.getElementById('itens').appendChild(div);
+}
+
+async function finalizarVenda() {
+  const itens = [...document.querySelectorAll('.item-linha')].map(linha => ({
+    produto_id: parseInt(linha.querySelector('.produto-sel').value),
+    quantidade: parseInt(linha.querySelector('.qtd-input').value),
+  }));
+
+  if (itens.length === 0) {
+    mostrarErro('Adicione pelo menos um item.');
+    return;
+  }
+
+  const res = await fetch('/api/vendas/criar/', {
+    method: 'POST',
+    credentials: 'same-origin',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': document.cookie.match(/csrftoken=([^;]+)/)[1]
+    },
+    body: JSON.stringify({ cliente_id: parseInt(document.getElementById('cliente').value), itens })
+  });
+
+  if (res.ok) { window.location.href = '/vendas/'; }
+  else {
+    const err = await res.json();
+    mostrarErro(err.mensagem || JSON.stringify(err));
+  }
+}
+
+function mostrarErro(msg) {
+  const el = document.getElementById('erro');
+  el.textContent = msg;
+  el.classList.remove('d-none');
+}
+</script>
+{% endblock %}

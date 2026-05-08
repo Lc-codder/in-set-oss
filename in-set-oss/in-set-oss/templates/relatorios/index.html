@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+{% block title %}Relatórios{% endblock %}
+{% block content %}
+<h2 class="mb-4">Relatórios</h2>
+<div class="row g-4">
+  <div class="col-md-6">
+    <div class="card p-4">
+      <h5>Vendas por Período</h5>
+      <div class="mb-3">
+        <label class="form-label">Data Início</label>
+        <input type="date" id="inicio" class="form-control">
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Data Fim</label>
+        <input type="date" id="fim" class="form-control">
+      </div>
+      <button onclick="buscarPeriodo()" class="btn btn-primary">Buscar</button>
+      <div id="resultado-periodo" class="mt-3"></div>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card p-4">
+      <h5>Vendas por Cliente</h5>
+      <select id="cliente-rel" class="form-select mb-3"></select>
+      <button onclick="buscarCliente()" class="btn btn-primary">Buscar</button>
+      <div id="resultado-cliente" class="mt-3"></div>
+    </div>
+  </div>
+</div>
+<div class="card p-4 mt-4">
+  <h5>Desempenho Anual</h5>
+  <canvas id="grafico-anual" height="80"></canvas>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+fetch('/api/clientes/', { credentials: 'same-origin' }).then(r => r.json()).then(clientes => {
+  const sel = document.getElementById('cliente-rel');
+  clientes.forEach(c => sel.innerHTML += `<option value="${c.id}">${c.nome}</option>`);
+});
+
+fetch('/api/relatorios/anual/', { credentials: 'same-origin' }).then(r => r.json()).then(dados => {
+  new Chart(document.getElementById('grafico-anual'), {
+    type: 'line',
+    data: {
+      labels: dados.map(d => d.mes),
+      datasets: [{ label: 'Receita (R$)', data: dados.map(d => d.total), borderColor: '#1e5fa8', tension: 0.3, fill: true, backgroundColor: 'rgba(30,95,168,0.1)' }]
+    },
+    options: { responsive: true }
+  });
+});
+
+function buscarPeriodo() {
+  const inicio = document.getElementById('inicio').value;
+  const fim = document.getElementById('fim').value;
+  fetch(`/api/relatorios/periodo/?inicio=${inicio}&fim=${fim}`, { credentials: 'same-origin' })
+    .then(r => r.json()).then(d => {
+      document.getElementById('resultado-periodo').innerHTML = `
+        <div class="alert alert-info">
+          <strong>${d.total_vendas}</strong> vendas — Total: <strong>R$ ${parseFloat(d.valor_total).toFixed(2)}</strong>
+        </div>`;
+    });
+}
+
+function buscarCliente() {
+  const id = document.getElementById('cliente-rel').value;
+  fetch(`/api/relatorios/cliente/${id}/`, { credentials: 'same-origin' })
+    .then(r => r.json()).then(d => {
+      document.getElementById('resultado-cliente').innerHTML = `
+        <div class="alert alert-info">
+          <strong>${d.total_vendas}</strong> vendas — Total: <strong>R$ ${parseFloat(d.valor_total).toFixed(2)}</strong>
+        </div>`;
+    });
+}
+</script>
+{% endblock %}

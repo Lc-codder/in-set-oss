@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block title %}Vendas{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h2>Vendas</h2>
+  <a href="/vendas/criar/" class="btn btn-primary"><i class="bi bi-plus"></i> Nova Venda</a>
+</div>
+<div class="card">
+  <div class="card-body p-0">
+    <table class="table table-hover mb-0">
+      <thead><tr><th>#</th><th>Cliente</th><th>Valor Total</th><th>Data</th><th>Responsável</th></tr></thead>
+      <tbody id="tabela-vendas"></tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+fetch('/api/vendas/', { credentials: 'same-origin' })
+  .then(r => r.json()).then(vendas => {
+    const tbody = document.getElementById('tabela-vendas');
+    vendas.forEach(v => {
+      tbody.innerHTML += `<tr>
+        <td>#${v.id}</td>
+        <td>${v.cliente}</td>
+        <td>R$ ${parseFloat(v.valor_total).toFixed(2)}</td>
+        <td>${new Date(v.data).toLocaleDateString('pt-BR')}</td>
+        <td>${v.usuario}</td>
+      </tr>`;
+    });
+  });
+</script>
+{% endblock %}
