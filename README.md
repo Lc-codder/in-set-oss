@@ -2,79 +2,97 @@
 
 > Sistema de gestão comercial do projeto social **Luta Mais** — jiujitsu, fé e propósito.
 
----
-
-## O que é isso aqui?
-
-O Luta Mais não é só uma escolinha de jiujitsu. É um projeto cristão batista que acredita que o tatame pode ser um lugar de encontro com Jesus. A ideia é simples: acolher pessoas que talvez nunca entrassem numa igreja, e mostrar que tem algo maior acontecendo ali — no meio do suor, da disciplina e da comunidade.
-
-Para sustentar tudo isso — comprar kimonos, manter o espaço limpo, crescer de forma estruturada — o projeto vende adesivos e chaveiros. Cada adesivo colado num carro, num notebook ou numa garrafa é a mensagem do projeto chegando em algum lugar onde ela não chegaria de outra forma.
-
-O **in-set-oss** é o sistema que cuida dessa parte. Cadastro de clientes, controle de estoque, registro de vendas, relatórios. Nada de planilha perdida ou anotação no papel. O projeto merece estrutura.
+O Luta Mais é um projeto cristão batista que usa o jiujitsu para levar pessoas a conhecer a Jesus. Para sustentar o projeto — kimonos, limpeza, estrutura — a equipe vende adesivos e chaveiros temáticos. O **in-set-oss** é o sistema que gerencia essas vendas.
 
 ---
 
 ## O que o sistema faz
 
-- Cadastro completo de clientes (com validação de CPF e e-mail)
-- Gestão de produtos e controle de estoque em tempo real
+- Login com controle de acesso por perfil (ADMIN e FUNCIONÁRIO)
+- Cadastro e listagem de clientes com validação de CPF e e-mail
+- Cadastro e listagem de produtos com controle de estoque
 - Registro de vendas com cálculo automático do total
-- Bloqueio automático quando o estoque não é suficiente
+- Bloqueio automático quando o estoque é insuficiente
+- Atualização de estoque após cada venda
 - Relatórios de vendas por período e por cliente
-- Gráfico de desempenho anual
-- Autenticação com JWT e controle de acesso por perfil (admin e funcionário)
+- Gráfico de desempenho anual no dashboard
+
+---
+
+## Como rodar
+
+### Pré-requisitos
+
+- Python 3.10 ou superior
+- Git
+
+### Passo a passo
+
+```bash
+# 1. Clone o repositório
+git clone https://github.com/Lc-codder/in-set-oss.git
+cd in-set-oss
+
+# 2. Crie e ative o ambiente virtual
+python -m venv venv
+
+# Windows:
+venv\Scripts\activate
+
+# Linux/Mac:
+source venv/bin/activate
+
+# 3. Instale as dependências
+pip install -r requirements.txt
+
+# 4. Crie o banco de dados
+python manage.py migrate
+
+# 5. Crie o usuário administrador
+python manage.py createsuperuser
+
+# 6. Rode o servidor
+python manage.py runserver
+```
+
+Acesse em: **http://127.0.0.1:8000/login/**
+
+---
+
+## Telas disponíveis
+
+| URL | Tela |
+|-----|------|
+| `/login/` | Login |
+| `/dashboard/` | Painel com totais e gráfico de vendas |
+| `/clientes/` | Listagem de clientes |
+| `/clientes/novo/` | Cadastro de cliente |
+| `/produtos/` | Listagem de produtos |
+| `/produtos/novo/` | Cadastro de produto |
+| `/vendas/` | Listagem de vendas |
+| `/vendas/criar/` | Registrar nova venda |
+| `/relatorios/` | Relatórios e gráficos |
+| `/api/docs/` | Documentação da API (Swagger) |
+
+---
+
+## Perfis de acesso
+
+| Perfil | Permissões |
+|--------|-----------|
+| `ADMIN` | Acesso completo — clientes, produtos, vendas, relatórios |
 
 ---
 
 ## Stack
 
-| Camada | Tecnologia |
-|--------|-----------|
-| Backend | Python 3.12 + Django 5 + Django REST Framework |
-| Autenticação | djangorestframework-simplejwt |
-| Banco de dados | PostgreSQL 16 |
-| Senhas | BCrypt |
+| Componente | Tecnologia |
+|-----------|-----------|
+| Backend | Python + Django + Django REST Framework |
+| Autenticação | JWT (simplejwt) + Sessão Django |
+| Banco de dados | SQLite |
 | Frontend | Django Templates + Bootstrap 5 + Chart.js |
-| Documentação da API | drf-spectacular (Swagger) |
-
----
-
-## Como rodar localmente
-
-**Pré-requisitos:** Python 3.12+, PostgreSQL, Git
-
-```bash
-# Clone o repositório
-git clone https://github.com/[usuario]/in-set-oss.git
-cd in-set-oss
-
-# Crie e ative o ambiente virtual
-python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
-
-# Instale as dependências
-pip install -r requirements.txt
-
-# Configure as variáveis de ambiente
-cp .env.example .env
-# Edite o .env com suas credenciais do banco
-
-# Crie o banco de dados
-psql -U postgres -f scripts/create_db.sql
-
-# Rode as migrations
-python manage.py migrate
-
-# Crie um usuário admin
-python manage.py createsuperuser
-
-# Inicie o servidor
-python manage.py runserver
-```
-
-Acesse em `http://localhost:8000`
-
-A documentação da API fica em `http://localhost:8000/api/docs`
+| Documentação API | drf-spectacular (Swagger) |
 
 ---
 
@@ -82,58 +100,16 @@ A documentação da API fica em `http://localhost:8000/api/docs`
 
 ```
 in-set-oss/
-├── core/               # Configurações principais do Django
-├── usuarios/           # Autenticação e controle de acesso
-├── clientes/           # Gestão de clientes
-├── produtos/           # Gestão de produtos e estoque
-├── vendas/             # Registro e histórico de vendas
-├── relatorios/         # Relatórios e gráficos
-├── templates/          # Frontend (Django Templates)
-├── scripts/            # Script SQL e utilitários
-└── docs/               # Diagramas e documentação técnica
+├── core/           # Configurações do Django
+├── usuarios/       # Autenticação e controle de acesso
+├── clientes/       # CRUD de clientes
+├── produtos/       # CRUD de produtos e estoque
+├── vendas/         # Registro de vendas
+├── relatorios/     # Relatórios e gráficos
+├── templates/      # Interface web
+├── manage.py
+└── requirements.txt
 ```
 
 ---
-
-## Variáveis de ambiente
-
-Crie um arquivo `.env` na raiz com:
-
-```env
-SECRET_KEY=sua_chave_secreta_aqui
-DEBUG=True
-DB_NAME=insetoss
-DB_USER=postgres
-DB_PASSWORD=sua_senha
-DB_HOST=localhost
-DB_PORT=5432
-JWT_EXPIRATION_HOURS=8
-```
-
----
-
-## Perfis de acesso
-
-| Perfil | O que pode fazer |
-|--------|-----------------|
-| `ADMIN` | Tudo — clientes, produtos, vendas, relatórios, usuários |
-| `FUNCIONARIO` | Registrar vendas, consultar clientes e produtos |
-
----
-
-## Entregas do projeto
-
-- **Entrega 1 (03/04)** — Modelagem e arquitetura ✅
-- **Entrega 2 (08/05)** — Backend e API
-- **Entrega 3 (26/06)** — Sistema completo com JWT, e-mail e documentação final
-
----
-
-## Contexto
-
-Trabalho acadêmico da disciplina **Construção de Código Orientado a Objetos (CCO)**.
-O contexto real escolhido foi o projeto social Luta Mais — porque faz sentido construir algo que tem propósito de verdade.
-
----
-
 *Para a glória de Deus — e pra ajudar o projeto a ter kimono bom pra todo mundo.*
